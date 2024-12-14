@@ -1,7 +1,6 @@
 import NotFoundError from '../errors/not-found.error.js'
 import { toNativeTypes } from '../utils.js'
-
-// TODO: Import the `int` function from neo4j-driver
+import { int } from 'neo4j-driver'
 
 import { goodfellas, popular } from '../../test/fixtures/movies.js'
 
@@ -40,11 +39,31 @@ export default class FavoriteService {
    */
   // tag::all[]
   async all(userId, sort = 'title', order = 'ASC', limit = 6, skip = 0) {
-    // TODO: Open a new session
-    // TODO: Retrieve a list of movies favorited by the user
-    // TODO: Close session
+    // Open a new session
+    const session = await this.driver.session()
 
-    return popular
+    // Retrieve a list of movies favorited by the user
+    const res = await session.executeRead(
+      tx => tx.run(
+        `
+          MATCH (u :User {userId: $userId})-[:HAS_FAVORITE]->(m :Movie)
+          RETURN m {
+            .*,
+            favorite: true
+          } AS movie
+          ORDER BY m.\`${sort}\` ${order}
+          SKIP $skip
+          LIMIT $limit
+        `, 
+        { userId, sort, order, skip: int(skip), limit: int(limit) }
+      )
+    )
+    
+
+    // Close session
+    await session.close()
+
+    return res.records.map(row => toNativeTypes(row.get('movie')))
   }
   // end::all[]
 
@@ -61,15 +80,42 @@ export default class FavoriteService {
    */
   // tag::add[]
   async add(userId, movieId) {
-    // TODO: Open a new Session
-    // TODO: Create HAS_FAVORITE relationship within a Write Transaction
-    // TODO: Close the session
-    // TODO: Return movie details and `favorite` property
+    // Open a new Session
+    const session = await this.driver.session()
 
-    return {
-      ...goodfellas,
-      favorite: true,
+    // Create HAS_FAVORITE relationship within a Write Transaction
+    const res = await session.executeWrite(
+      tx => tx.run(
+        `
+          MATCH (u :User {userId: $userId})
+          MATCH (m :Movie {tmdbId: $movieId})
+          MERGE (u)-[r :HAS_FAVORITE]->(m)
+          ON CREATE SET u.createdAt = datetime()
+          RETURN m {
+            .*,
+            favorite: true
+          } AS movie
+        `,
+        { userId, movieId }
+      )
+    )
+   
+
+    if (res.records.length === 0) {
+      throw new NotFoundError(
+        `Could not create favorite relationship between User ${userId} and Movie ${movieId}`
+      )
     }
+
+     // Close the session
+     await session.close()
+
+    // Return movie details and `favorite` property
+
+    const [ first ] = res.records
+    const movie = first.get('movie')
+
+    return toNativeTypes(movie)
   }
   // end::add[]
 
