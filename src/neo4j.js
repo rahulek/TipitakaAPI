@@ -8,7 +8,7 @@ export async function initDriver(uri, username, password) {
 
   // eslint-disable-next-line no-useless-catch
   try {
-    await driver.verifyConnectivity();
+    await driver.verifyAuthentication();
   } catch (e) {
     throw e;
   }
