@@ -1,12 +1,10 @@
-import app from './app.js'
-import { APP_PORT } from './constants.js'
-import neo4j from 'neo4j-driver'
+/* eslint-disable semi */
+import app from './app.js';
+import { APP_PORT } from './constants.js';
 
 // Listen
-const port = APP_PORT
-
-
+const port = APP_PORT;
 
 app.listen(port, async () => {
-  console.log(`Server listening on http://localhost:${port}/`)
-})
+  console.log(`Server listening on http://localhost:${port}/`);
+});
