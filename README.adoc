@@ -1,24 +1,21 @@
-= Building Neo4j Applications with Node.js
+= Tipitaka API Documentation Quick Ref
 
-> Learn how to interact with Neo4j from Node.js using the Neo4j JavaScript Driver
+== Get all Pitakas
+ /api/tipitaka/pitakas
+ Returns all the supported pitaka names
 
-This repository accompanies the link:https://graphacademy.neo4j.com/courses/app-nodejs/[Building Neo4j Applications with Node.js course^] on link:https://graphacademy.neo4j.com/[Neo4j GraphAcademy^].
+== Get Books from a Collection (e.g. Nikaya, for example)
+ /api/tipitaka/books?collection=XX (XX - Nikaya name, no quotes and with spaces)
+ Example - /api/tipitaka/books?collection=Digha Nikaya
+ Returns - Array of `{ name, id }` objects or 404 if Niakaya or Collection not found
 
-For a complete walkthrough of this repository,  link:https://graphacademy.neo4j.com/courses/app-nodejs/[enrol now^].
+== Get Book Sections
+ /api/tipitaka/sections?book=XX (XX - bookId returned by earlier /books? API)
+ Example - /api/tipitaka/sections?book=DN1 (get all from DN1 - SilakkhandavaggaPali)
+ Returns - Array of `{ bookName, id, name }` objects or 404 if book not found
 
-== A Note on comments
-
-You may spot a number of comments in this repository that look a little like this:
-
-[source,js]
-----
-// tag::something[]
-someCode()
-// end::something[]
-----
-
-
-We use link:https://asciidoc-py.github.io/index.html[Asciidoc^] to author our courses.
-Using these tags means that we can use a macro to include portions of code directly into the course itself.
-
-From the point of view of the course, you can go ahead and ignore them.
+== Get SubSections of a Section
+ /api/tipitaka/subsections?section=XX (XX - sectionId returned by earlier /sections? API)
+ Example - //api/tipitaka/subsections?section=DN2_10 (get all from DN2_10- MahavaggaPali-PayasiSutta)
+ Returns - Array of `{ sectionName, subSectionId, subSectionName }` objects or 404 if the section not found
+ 
