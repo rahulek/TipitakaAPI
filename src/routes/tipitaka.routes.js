@@ -72,4 +72,38 @@ router.get('/subsections', async (req, res, next) => {
   }
 });
 
+router.get('/paras', async (req, res, next) => {
+  try {
+    const driver = getDriver();
+
+    const tipitakaService = new TipitakaService(driver);
+    const subSectionId = req.query.subSectionId;
+    if (!subSectionId) {
+      return res.status(404).end();
+    }
+    const paras = await tipitakaService.getParas(subSectionId);
+
+    res.json(paras);
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.get('/subParas', async (req, res, next) => {
+  try {
+    const driver = getDriver();
+
+    const tipitakaService = new TipitakaService(driver);
+    const paraId = req.query.paraId;
+    if (!paraId) {
+      return res.status(404).end();
+    }
+    const subParas = await tipitakaService.getSubParas(paraId);
+
+    res.json(subParas);
+  } catch (e) {
+    next(e);
+  }
+});
+
 export default router;
