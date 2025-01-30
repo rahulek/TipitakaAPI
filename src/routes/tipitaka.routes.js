@@ -106,4 +106,21 @@ router.get('/subParas', async (req, res, next) => {
   }
 });
 
+router.get('/allLines', async (req, res, next) => {
+  try {
+    const driver = getDriver();
+
+    const tipitakaService = new TipitakaService(driver);
+    const paraId = req.query.paraId;
+    if (!paraId) {
+      return res.status(404).end();
+    }
+    const allLines = await tipitakaService.getAllLines(paraId);
+
+    res.json(allLines);
+  } catch (e) {
+    next(e);
+  }
+});
+
 export default router;

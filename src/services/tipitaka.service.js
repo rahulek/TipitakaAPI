@@ -174,4 +174,35 @@ export default class TipitakaService {
 
     return { numSubParas: subParas.length, subParas };
   }
+
+  async getAllLines(paraId) {
+    // Open a new session
+    const session = this.driver.session();
+
+    const qText = `
+    MATCH (p :PARA {id: $paraId})-[:HAS_LINE]-(l :LINE) 
+    RETURN l.id, l.text 
+      UNION ALL 
+    MATCH (p :PARA {id: $paraId})-[:HAS_SUBPARA]-(sp :SUBPARA)-[:HAS_LINE]-(l :LINE) 
+    RETURN l.id, l.text
+    `;
+    const res = await session.executeRead((tx) =>
+      tx.run(qText, {
+        paraId,
+      })
+    );
+
+    // Close the session, data already fetched, no session required anymore
+    await session.close();
+
+    const allLines = this.sorted(
+      res.records.map((rec) => {
+        const id = rec.get('l.id');
+        const lineText = rec.get('l.text');
+        return { id, lineText };
+      })
+    );
+
+    return { numLines: allLines.length, allLines };
+  }
 }
