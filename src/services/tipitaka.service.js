@@ -180,11 +180,11 @@ export default class TipitakaService {
     const session = this.driver.session();
 
     const qText = `
-    MATCH (p :PARA {id: $paraId})-[:HAS_LINE]-(l :LINE) 
-    RETURN l.id, l.text 
-      UNION ALL 
-    MATCH (p :PARA {id: $paraId})-[:HAS_SUBPARA]-(sp :SUBPARA)-[:HAS_LINE]-(l :LINE) 
-    RETURN l.id, l.text
+      MATCH (p :PARA {id: $paraId})-[:HAS_LINE]-(lid :LINEID)-[:LINETEXT]-(l :LINE) 
+      RETURN lid.id,  l.text 
+      UNION
+      MATCH (p :PARA {id: $paraId})-[:HAS_SUBPARA]-(sp :SUBPARA)-[:HAS_LINE]-(lid :LINEID)-[:LINETEXT]-(l :LINE) 
+      RETURN lid.id, l.text 
     `;
     const res = await session.executeRead((tx) =>
       tx.run(qText, {
@@ -197,7 +197,7 @@ export default class TipitakaService {
 
     const allLines = this.sorted(
       res.records.map((rec) => {
-        const id = rec.get('l.id');
+        const id = rec.get('lid.id');
         const lineText = rec.get('l.text');
         return { id, lineText };
       })
