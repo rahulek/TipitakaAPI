@@ -123,4 +123,42 @@ router.get('/allLines', async (req, res, next) => {
   }
 });
 
+router.get('/allLineIdRepeats', async (req, res, next) => {
+  try {
+    const driver = getDriver();
+
+    const tipitakaService = new TipitakaService(driver);
+    const lineId = req.query.lineId;
+    if (!lineId) {
+      return res.status(404).end();
+    }
+    const allRepeats = await tipitakaService.getRepeatCountFromLineId(lineId);
+
+    res.json(allRepeats);
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.get('/allLineTextRepeats', async (req, res, next) => {
+  try {
+    const driver = getDriver();
+
+    const tipitakaService = new TipitakaService(driver);
+    const lineText = req.query.lineText;
+    const clause = req.query.clause || 'exact';
+    if (!lineText) {
+      return res.status(404).end();
+    }
+    const allRepeats = await tipitakaService.getRepeatCountFromLineText(
+      lineText,
+      clause
+    );
+
+    res.json(allRepeats);
+  } catch (e) {
+    next(e);
+  }
+});
+
 export default router;

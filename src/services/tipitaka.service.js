@@ -205,4 +205,71 @@ export default class TipitakaService {
 
     return { numLines: allLines.length, allLines };
   }
+
+  async getRepeatCountFromLineId(lineId) {
+    // Open a new session
+    const session = this.driver.session();
+
+    const qText = `
+      MATCH (lid :LINEID {id: $lineId})-[:LINETEXT]-(lt :LINE)<-[r]-(lid2 :LINEID) 
+      RETURN lid2.id, lt.text
+    `;
+    const res = await session.executeRead((tx) =>
+      tx.run(qText, {
+        lineId,
+      })
+    );
+
+    // Close the session, data already fetched, no session required anymore
+    await session.close();
+
+    const allRepeats = this.sorted(
+      res.records.map((rec) => {
+        const id = rec.get('lid2.id');
+        const lineText = rec.get('lt.text');
+        return { id, lineText };
+      })
+    );
+
+    return { numRepeats: allRepeats.length, allRepeats };
+  }
+
+  async getRepeatCountFromLineText(lineText, clause) {
+    // Open a new session
+    const session = this.driver.session();
+
+    const qTextExact = `
+      MATCH (lid :LINEID)-[:LINETEXT]-(lt :LINE) WHERE lt.text = $lineText 
+      RETURN lid.id, lt.text
+    `;
+
+    const qTextContains = `
+      MATCH (lid :LINEID)-[:LINETEXT]-(lt :LINE) WHERE lt.text CONTAINS $lineText 
+      RETURN lid.id, lt.text
+    `;
+
+    let qText = qTextExact;
+    if (clause === 'contains') {
+      qText = qTextContains;
+    }
+
+    const res = await session.executeRead((tx) =>
+      tx.run(qText, {
+        lineText,
+      })
+    );
+
+    // Close the session, data already fetched, no session required anymore
+    await session.close();
+
+    const allRepeats = this.sorted(
+      res.records.map((rec) => {
+        const id = rec.get('lid.id');
+        const lineText = rec.get('lt.text');
+        return { id, lineText };
+      })
+    );
+
+    return { numRepeats: allRepeats.length, allRepeats };
+  }
 }
